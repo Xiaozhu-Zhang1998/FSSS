@@ -5,10 +5,13 @@ library(tidyverse)
 # repeat the following for s0 in S0 = seq(from = 2, to = 41, by = 1) 
 # repeat each s0 500 times
 
-# example of s0 = 30 and l = 1
+# example of s0 = 30 and l__ = 1 (l__ is the index for repetition)
 s0 = 30
-l = 1
+l__ = 1
 
+
+
+# data generation ========
 n_train = 200 * 3
 n_test = 500
 n = n_train + n_test
@@ -62,9 +65,7 @@ data = list(
 
 
 
-
-# -------------------------------------------------------------------
-# functions for procedures ----
+# functions for simulation ========
 one_run_multi_alpha = function(data, s0, cutoff, Alpha) {
   X_train = as.matrix(data$X_train)
   y_train = data$y_train
@@ -416,8 +417,8 @@ interpretability = function(fit_CSS) {
 }
 
 
-# ------------------------------------------------------------------
-# execute
+
+# execute ========
 validation_obj = validation(data, s0, Cutoff = c(0.1, 0.3, 0.5), Alpha = seq(from = 0.05, to = 0.3, by = 0.05) )
 L = 50
 RS = matrix(0, nrow = 0, ncol = 37)
@@ -460,13 +461,18 @@ stab = c(stab_SS, stab_CSS_wavg, stab_CSS_savg, stab_CSS_sps, stab_FSSS, stab_La
 
 saveRDS(c(rs_, stab), paste0("./results/", s0, "_", l__, ".RDS"))
 
-# collect all results into a data frame called "Table1_lasso.RDS"
+
+
+# collect results ========
+# collect all results in the folder "results" into a data frame called "Table1_lasso.RDS"
 # The column names are:
-# [1] "s0"            "l"             "alpha_SS"      "alpha_CSS"     "alpha_FSSS"    "cutoff"       
-# [7] "mse_SS"        "mse_CSS_sps"   "mse_FSSS"      "mse_Lasso"     "mse_L0"        "q_SS"         
-# [13] "q_CSS_sps"     "q_FSSS"        "q_Lasso"       "q_L0"          "FD_SS"         "FD_CSS_sps"   
-# [19] "FD_FSSS"       "FD_Lasso"      "FD_L0"         "PW_SS"         "PW_CSS_sps"    "PW_FSSS"      
-# [25] "PW_Lasso"      "PW_L0"         "inter_SS"      "inter_CSS_sps" "inter_FSSS"    "inter_Lasso"  
-# [31] "inter_L0"      "stab_SS"       "stab_CSS_sps"  "stab_FSSS"     "stab_Lasso"    "stab_L0"      
+# [1] "s0"             "l"              "alpha_SS"       "alpha_CSS"      "alpha_FSSS"     "cutoff"        
+# [7] "mse_SS"         "mse_CSS_wavg"   "mse_CSS_savg"   "mse_CSS_sps"    "mse_FSSS"       "mse_Lasso"     
+# [13] "mse_L0"         "q_SS"           "q_CSS"          "q_FSSS"         "q_Lasso"        "q_L0"          
+# [19] "FD_SS"          "FD_CSS_wavg"    "FD_CSS_savg"    "FD_CSS_sps"     "FD_FSSS"        "FD_Lasso"      
+# [25] "FD_L0"          "PW_SS"          "PW_CSS_wavg"    "PW_CSS_savg"    "PW_CSS_sps"     "PW_FSSS"       
+# [31] "PW_Lasso"       "PW_L0"          "inter_SS"       "inter_CSS_wavg" "inter_CSS_savg" "inter_CSS_sps" 
+# [37] "inter_FSSS"     "inter_Lasso"    "inter_L0"       "stab_SS"        "stab_CSS_wavg"  "stab_CSS_savg" 
+# [43] "stab_CSS_sps"   "stab_FSSS"      "stab_Lasso"     "stab_L0"             
 
 

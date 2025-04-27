@@ -235,7 +235,6 @@ greedy_FSSS = function(X, Sinfo, base_lst, node_par = c(), orth_par = NULL, alph
 }
 
 
-# for comparison (alpha) ----
 
 cluSS_pred_alpha = function(Selset, cluster, alpha, wtype = "wavg") {
   feat_sel_props = apply(Selset != 0, 2, mean)
@@ -307,8 +306,6 @@ create_X_FSSS = function(nodes, X) {
 
 
 MSE = function(X, model, y) {
-  # newdat = data.frame(y = y, X = X)
-  # yhat = predict.lm(model, newdata = newdat)
   beta0 = model[1]
   beta = model[-1]
   yhat = beta0 + X %*% beta
@@ -364,6 +361,11 @@ allpath_fsss = function(X, Sinfo, base_lst, node_par = c(), orth_par = NULL, alp
     }
   }
   return(list(nodes = node_par, stab = stab))
+}
+
+
+support = function(X, S, base_lst) {
+  find_sigmamin(base_lst, X[,S, drop = FALSE])
 }
 
 

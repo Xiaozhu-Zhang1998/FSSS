@@ -1,20 +1,13 @@
 rm(list = ls())
 source("0_functions.R")
 library(tidyverse)
+library(dichromat)
 
 
 # l0 base procedure =====
 
-# read in the simulation data
-Results = rbind(
-  readRDS("./results_usethis_long/Results.RDS"),
-  readRDS("./results_usethis_long/Results2.RDS"),
-  readRDS("./results_usethis_long/Results3.RDS"),
-  readRDS("./results_usethis_long/Results4.RDS"),
-  readRDS("./results_usethis_long/Results5.RDS"),
-  readRDS("./results_usethis_long/Results6.RDS"),
-  readRDS("./results_usethis_long/Results7.RDS")
-)
+# read in the simulation data (collected from 2_synthetic_l0.R)
+Results = readRDS("Table1_l0.RDS")
 
 
 Results = Results %>%
@@ -234,19 +227,8 @@ Results %>%
 
 
 # lasso base procedure ====
-# read in the simulation data
-Results = rbind(
-  readRDS("./results_usethis_long/Results.lasso.RDS"),
-  readRDS("./results_usethis_long/Results.lasso2.RDS"),
-  readRDS("./results_usethis_long/Results.lasso3.RDS"),
-  readRDS("./results_usethis_long/Results.lasso4.RDS"),
-  readRDS("./results_usethis_long/Results.lasso5.RDS"),
-  readRDS("./results_usethis_long/Results.lasso6.RDS"),
-  readRDS("./results_usethis_long/Results.lasso7.RDS"),
-  readRDS("./results_usethis_long/Results.lasso8.RDS"),
-  readRDS("./results_usethis_long/Results.lasso9.RDS"),
-  readRDS("./results_usethis_long/Results.lasso10.RDS")
-)
+# read in the simulation data (collected from 2_synthetic_lasso.R)
+Results = readRDS("Table1_lasso.RDS")
 
 Results = Results %>%
   data.frame() %>%
@@ -468,7 +450,8 @@ Results %>%
 
 
 # Focus on one dataset and implement FSSS =====
-synData <- readRDS("./synData_long.RDS")
+# readin data
+synData <- readRDS("synData.RDS")
 X = synData$X
 y = synData$y
 beta = synData$beta
@@ -480,38 +463,28 @@ y = (y - mean(y)) / sd(y)
 X = X[1:600,]
 y = y[1:600]
 
-# get validated parameters
-CV_MSE = validation %>% `colnames<-`(c("s0", "alpha", "mse"))
-s0_min = CV_MSE[which.min(CV_MSE[,"mse"]), ]
-
-# subsampling
-s0 = 35
-alpha = 0.15
-set.seed(1234)
+# subsampling and selection
+s0 = 33
+alpha = 0.3
 bags = l0_subsampling(X, y, s0, num_bags = 100)
-# bags = readRDS("./results_usethis/bags.RDS")
 Selection_set = list()
 Stab = c()
 while(length(Selection_set) < 100) {
   Selection_set_obj = allpath_fsss(X, bags$Sinfo, bags$base_lst, alpha = alpha)
   S = Selection_set_obj$nodes
-  if(! (list(sort(S)) %in% Selection_set) & !(92 %in% S) ) {
+  if(! (list(sort(S)) %in% Selection_set)) {
     Selection_set = c(Selection_set, list(sort(S)))
     Stab = c(Stab, Selection_set_obj$stab)
+    cat(sort(S), "\n")
   }
   cat("finished", length(Selection_set), "\n")
 }
 
-
-
-# dendrogram + tile plot ========
 library(ggdendro)
 library(dendextend)
-library(dichromat)
-library(pBrackets)
-library(grid)
-library(ggradar)
 
+
+# the interest_sets need to be stable and appear in at least one selection set
 interest_sets = list(
   c(1,4,7),
   c(2,5,8),
@@ -532,7 +505,6 @@ set.levels = sapply(interest_sets, function(x) {
   paste0(unlist(x), collapse = "|")
 })
 
-
 combidx_set = combinat::combn(1:length(interest_sets), 2)
 
 RS = matrix(0, nrow = ncol(combidx_set), ncol = 7)
@@ -540,22 +512,19 @@ for(i in 1:ncol(combidx_set)) {
   zoom = combidx_set[,i]
   S1 = interest_sets[[zoom[1]]]
   S2 = interest_sets[[zoom[2]]]
-  
   joint_supp = support(X, union(S1, S2), bags$base_lst)
   if(joint_supp >= 1 - alpha){
     next
   }
-  
   rs = rep(0, 7)
   rs[1] = set.levels[zoom[1]]
   rs[2] = set.levels[zoom[2]]
-  rs[3] = 0 #support(X, S1, bags$base_lst)
-  rs[4] = 0 #support(X, S2, bags$base_lst)
+  rs[3] = support(X, S1, bags$base_lst)
+  rs[4] = support(X, S2, bags$base_lst)
   rs[5] = subs_u_wrt_S(X, y, S1, S2, Selection_set)  
   nabla_obj = nabla_tau_wrt_S(X, y, S1, S2, Selection_set)
   rs[6] = nabla_obj$value
   rs[7] = nabla_obj$idx
-  
   RS[i, ]= rs
   cat("finished", i, "\n")
 }
@@ -570,7 +539,7 @@ tab = RS %>%
   )
 
 
-## order by dendrogram ----
+## order by dendrogram 
 d = length(set.levels)
 subs.mat = matrix(0, nrow = d, ncol = d)
 for(i in 1:d) {
@@ -592,7 +561,7 @@ hc <- hclust(as.dist(subs.mat), method = "single")
 fixed.set = hc$labels[hc$order]
 
 
-## tile plot ----
+## Figure 2 ----
 tab1 = tab
 tab1$set1 = tab$set2
 tab1$set2 = tab$set1
@@ -637,39 +606,8 @@ p1 = all_tri %>%
   )
 p1 
 
-grid.brackets(42, 275, 42, 210, lwd=0.5, ticks=NA, h =0.01, type = 4)
-grid.brackets(42, 190, 42, 145, lwd=0.5, ticks=NA, h =0.01, type = 4)
-grid.brackets(42, 125, 42, 82, lwd=0.5, ticks=NA, h =0.01, type = 4)
-grid.brackets(42, 63, 42, 18, lwd=0.5, ticks=NA, h =0.01, type = 4)
 
-grid.text(x=unit(30,'native'), y=unit(40,'native'),
-          label=expression(paste('Clusters'),'type=4'), rot = 90, gp=gpar(fontsize=8))
-grid.text(x=unit(30,'native'), y=unit(105,'native'),
-          label=expression(paste('B1'),'type=4'), rot = 90, gp=gpar(fontsize=8))
-grid.text(x=unit(30,'native'), y=unit(165,'native'),
-          label=expression(paste('B2'),'type=4'), rot = 90, gp=gpar(fontsize=8))
-grid.text(x=unit(30,'native'), y=unit(240,'native'),
-          label=expression(paste('B3'),'type=4'), rot = 90, gp=gpar(fontsize=8))
-
-
-
-# # dendrogram plot
-# p2 = ggdendrogram(hc, rotate = TRUE, theme_dendro = FALSE) +
-#   labs(x = "", y = "") +
-#   geom_hline(yintercept = 0.1, linetype = "dashed", col = "red") +
-#   scale_x_continuous(expand = expansion(mult = c(0.04, 0.04))) +
-#   theme_minimal() +
-#   theme(axis.text.y = element_blank(), axis.ticks.y = element_blank(),
-#         axis.text.x = element_blank(), axis.ticks.x = element_blank(),
-#         panel.grid.major = element_blank(),
-#         panel.grid.minor = element_blank())
-# 
-# 
-# 
-# p1 & theme(legend.position = "bottom")
-
-
-## radar chart ----
+## Figure 3 ----
 all_tri_filter = tab %>%
   filter(subs_u > 0.9, nabla_value > 0.5)
 
@@ -732,61 +670,7 @@ for(i in 1:nrow(all_tri_filter)) {
     vlcex = 1, calcex = 0.9,
     axistype = 1,
   )
-  text = paste0("$S1 = \\{", paste0(S1, collapse = ","), "\\}$, S2 = \\{", paste0(S2, collapse = ","), "\\}$")
-  mtext(TeX(text), side=1, cex = 0.7)
+  text = paste0("S1 = {", paste0(S1, collapse = ","), "}, S2 = {", paste0(S2, collapse = ","), "}")
+  mtext(text, side=1, cex = 0.7)
   
 }
-
-
-# no texts
-par(mar = c(1.5, 1, 1, 1))
-par(mfrow = c(2,3))
-for(i in 1:nrow(all_tri_filter)) {
-  Tau = matrix(0, nrow = 3, ncol = 5)
-  Tau[1,] = matrix(1, 1, 5) 
-  Tau[2,] = matrix(0, 1, 5)
-  
-  row_focus = all_tri_filter[i,]
-  S1 = as.numeric(strsplit(row_focus$set1, "\\|")[[1]])
-  S2 = as.numeric(strsplit(row_focus$set2, "\\|")[[1]])
-  
-  PS1 = rje::powerSet(S1)
-  PS2 = rje::powerSet(S2)
-  
-  Tau.pair1 = c()
-  Name.pair1 = list()
-  for(j in PS1[2:(length(PS1)-1)]) {
-    rs = subs_u_wrt_S_radar(X, y, j, S1, S2, Selection_set)
-    Tau.pair1 = c(Tau.pair1, rs)
-    Name.pair1 = c(Name.pair1, list(j))
-  }
-  Tau.pair2 = c()
-  Name.pair2 = list()
-  for(j in PS2[2:(length(PS2)-1)]) {
-    rs = subs_u_wrt_S_radar(X, y, j, S2, S1, Selection_set)
-    Tau.pair2 = c(Tau.pair2, rs)
-    Name.pair2 = c(Name.pair2, list(j))
-  }
-  idx1 = tensr:::topK(Tau.pair1, 2)
-  
-  idx2 = tensr:::topK(Tau.pair2, 2)
-  Name.pair2[idx2]
-  Tau.pair2[idx2]
-  
-  Tau[3,] = c(Tau.pair1[idx1], Tau.pair2[idx2], max(Tau.pair1, Tau.pair2))
-  Tau = data.frame(Tau)
-  rownames(Tau) = c("1", "2", paste0("S1={", row_focus$set1, ", S2=", row_focus$set2, "}" ))
-  colnames(Tau) = rep("", 5)
-  fmsb::radarchart(
-    Tau,
-    pfcol = c("#99999980",NA),
-    pcol= c(NA,2), plty = 1, plwd = 2,
-    # title = row.names(Tau)[3],
-    vlcex = 1, calcex = 0.9,
-  )
-  mtext("", side=1, cex = 0.7)
-  
-}
-
-
-
