@@ -248,7 +248,7 @@ odd_2_even = function(x) {
 
 
 # you may use this line to get the dataset we used:
-# RS = readRDS("illustration_RS.RDS")
+# RS = readRDS("RS_illustration.RDS")
 Results = RS %>% 
   data.frame() %>%
   `colnames<-`(c("s0", "mse_SS", "mse_CSS", "mse_FSSS", "FD_SS", "FD_CSS", "FD_FSSS", "PW_SS", "PW_CSS", "PW_FSSS",

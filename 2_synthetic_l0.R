@@ -465,7 +465,7 @@ saveRDS(c(rs_, stab), paste0("./results/", s0, "_", l__, ".RDS"))
 
 
 # collect results ========
-# collect all results in the folder "results" into a data frame called "Table1_l0.RDS"
+# collect all results in the folder "results" into a data frame called "RS_Syn_l0.RDS"
 # The column names are:
 # [1] "s0"             "l"              "alpha_SS"       "alpha_CSS"      "alpha_FSSS"     "cutoff"        
 # [7] "mse_SS"         "mse_CSS_wavg"   "mse_CSS_savg"   "mse_CSS_sps"    "mse_FSSS"       "mse_Lasso"     

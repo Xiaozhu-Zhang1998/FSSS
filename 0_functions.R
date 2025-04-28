@@ -1,3 +1,4 @@
+# generate clusters
 gen_clust = function(n, s, d, eta = 0.1) {
   X = matrix(rnorm(n*s*d), nrow = n)
   
@@ -35,17 +36,21 @@ gen_block = function(n, nb, b, eta = 0.1) {
   return(X)
 }
 
+
+# trace of a matrix
 tr = function(X) {
   sum(diag(X))
 }
 
 
+# projection matrix of X
 proj = function(X) {
   U = svd(X)$u
   U %*% t(U)
 }
 
 
+# find covering pairs on the poset
 add_cover = function(idx, d) {
   candidate = setdiff(1:d, idx)
   lapply(candidate, function(i) {
@@ -54,6 +59,7 @@ add_cover = function(idx, d) {
 }
 
 
+# Gram Schmidt process
 gs = function(new, orth) {
   terms = lapply(seq_len(ncol(orth)), function(i) {
     sum(new * orth[,i]) / sum(orth[,i]^2) *  matrix(orth[,i])
@@ -63,6 +69,7 @@ gs = function(new, orth) {
 }
 
 
+# subsampling using l0 base procedure
 l0_subsampling <- function(X, y, s0, num_bags = 100){
   n = nrow(X)
   p = ncol(X)
@@ -115,6 +122,7 @@ l0_subsampling <- function(X, y, s0, num_bags = 100){
 }
 
 
+# lasso with s0 as tuning parameter
 lasso.s0 = function(X, y, maxSuppSize = s0) {
   fit_lasso = glmnet::glmnet(x = X, y = y)
   lasso_pw = which(sapply(1:ncol(fit_lasso$beta), function(i) {
@@ -125,6 +133,7 @@ lasso.s0 = function(X, y, maxSuppSize = s0) {
 }
 
 
+# subsampling using lasso base procedure
 lasso_subsampling <- function(X, y, s0, num_bags = 100){
   n = nrow(X)
   p = ncol(X)
@@ -173,11 +182,13 @@ lasso_subsampling <- function(X, y, s0, num_bags = 100){
 }
 
 
+# selection proportion of each feature
 selprob = function(bags) {
   apply(bags$Selset, 2, function(x) { mean(x!=0) })
 }
 
 
+# find subspace stability
 find_sigmamin = function(base_lst, Z) {
   Uc = svd(Z)$u
   Mat = matrix(0, nrow = nrow(Z), ncol = nrow(Z))
@@ -191,7 +202,7 @@ find_sigmamin = function(base_lst, Z) {
 }
 
 
-# the greedy algorithm
+# the greedy FSSS
 greedy_FSSS = function(X, Sinfo, base_lst, node_par = c(), orth_par = NULL, alpha = 0.1) {
   d = ncol(X)
   while(TRUE) {
@@ -235,7 +246,7 @@ greedy_FSSS = function(X, Sinfo, base_lst, node_par = c(), orth_par = NULL, alph
 }
 
 
-
+# Cluster stability selection
 cluSS_pred_alpha = function(Selset, cluster, alpha, wtype = "wavg") {
   feat_sel_props = apply(Selset != 0, 2, mean)
   c = length(unique(cluster))
@@ -266,6 +277,7 @@ cluSS_pred_alpha = function(Selset, cluster, alpha, wtype = "wavg") {
 }
 
 
+# fit a linear model
 lin_reg = function(X, y) {
   if(ncol(X) <= 1) {
     dat = data.frame(y = y, X = X)
@@ -280,6 +292,7 @@ lin_reg = function(X, y) {
 }
 
 
+# create predictor from CSS results
 create_X_cluster = function(fit_obj, X_new) {
   X_create = matrix(0, nrow = nrow(X_new), ncol = 0)
   for(i in seq_along(fit_obj$Cluster)) {
@@ -295,16 +308,7 @@ create_X_cluster = function(fit_obj, X_new) {
 }
 
 
-create_X_FSSS = function(nodes, X) {
-  V = X[,nodes[1], drop = FALSE]
-  for(i in 2:length(nodes)) {
-    new_dir = gs(X[, nodes[i]], V)
-    V = cbind(V, new_dir)
-  }
-  return(V)
-}
-
-
+# compute MSE
 MSE = function(X, model, y) {
   beta0 = model[1]
   beta = model[-1]
@@ -314,6 +318,7 @@ MSE = function(X, model, y) {
 }
 
 
+# all-path FSSS
 allpath_fsss = function(X, Sinfo, base_lst, node_par = c(), orth_par = NULL, alpha = 0.1) {
   d = ncol(X)
   stab = 0
@@ -364,11 +369,13 @@ allpath_fsss = function(X, Sinfo, base_lst, node_par = c(), orth_par = NULL, alp
 }
 
 
+# subspace stability of a set
 support = function(X, S, base_lst) {
   find_sigmamin(base_lst, X[,S, drop = FALSE])
 }
 
 
+# the substitutability metric "tau"
 subs_u = function(X, y, S1, S2, S0) {
   U = svd(X[,S0])$u
   U1 = svd(X[, union(S0, S1)])$u
@@ -387,6 +394,7 @@ subs_u = function(X, y, S1, S2, S0) {
 }
 
 
+# the feature perturbation matrix "nabla tau"
 nabla_tau = function(X, y, S1, S2, S0) {
   subs.mat = matrix(0, nrow = length(S1), ncol = length(S2))
   for(i in 1:nrow(subs.mat)) {
@@ -407,6 +415,7 @@ nabla_tau = function(X, y, S1, S2, S0) {
 }
 
 
+# the tau metric wrt selection sets
 subs_u_wrt_S = function(X, y, S1, S2, Selection_set) {
   Subs_U = c()
   for(i in seq_along(Selection_set)) {
@@ -421,6 +430,7 @@ subs_u_wrt_S = function(X, y, S1, S2, Selection_set) {
 }
 
 
+# the nabla tau metric wrt selection sets
 nabla_tau_wrt_S = function(X, y, S1, S2, Selection_set) {
   Nabla_Tau = c()
   Idx = c()
@@ -439,6 +449,7 @@ nabla_tau_wrt_S = function(X, y, S1, S2, Selection_set) {
 }
 
 
+# the metric used in creating radar chart
 subs_u_wrt_S_radar = function(X, y, j, S, S_, Selection_set) {
   Subs_U = c()
   for(i in seq_along(Selection_set)) {

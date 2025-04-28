@@ -1,13 +1,13 @@
 rm(list = ls())
 source("0_functions.R")
 library(tidyverse)
+library(patchwork)
 library(dichromat)
 
 
 # l0 base procedure =====
-
-# read in the simulation data (collected from 2_synthetic_l0.R)
-Results = readRDS("Table1_l0.RDS")
+# read in the simulation results (collected from 2_synthetic_l0.R)
+Results = readRDS("RS_Syn_l0.RDS")
 
 
 Results = Results %>%
@@ -130,7 +130,8 @@ p4 = fd.tab %>%
   labs(x = "FPE", y = "TP")  
 
 
-## Figure 12 ----
+## Figure 12 ====
+fontsize = 7
 p1 + p2 + p3 + p4 +
   plot_annotation(title = "Base procedure: L0") +
   plot_layout(ncol = 4, guides = "collect") & 
@@ -140,7 +141,7 @@ p1 + p2 + p3 + p4 +
   )
 
 
-## Left column of Table 1 ----
+## Left column of Table 1 =====
 mse.min = Results %>%
   select(-starts_with("alph"), -cutoff, -starts_with("q"), -starts_with("inter"), -starts_with("stab"), -starts_with("FD"), -starts_with("PW")) %>%
   pivot_longer(!c("s0", "l"), names_to = "method", values_to = "mse") %>%
@@ -227,8 +228,8 @@ Results %>%
 
 
 # lasso base procedure ====
-# read in the simulation data (collected from 2_synthetic_lasso.R)
-Results = readRDS("Table1_lasso.RDS")
+# read in the simulation results (collected from 2_synthetic_lasso.R)
+Results = readRDS("RS_Syn_lasso.RDS")
 
 Results = Results %>%
   data.frame() %>%
@@ -350,7 +351,7 @@ p8 = fd.tab %>%
   labs(x = "FPE", y = "TP")  
 
 
-## Figure 13 ----
+## Figure 13 ====
 p5 + p6 + p7  + p8 +
   plot_annotation(title = "Base procedure: Lasso") +
   plot_layout(ncol = 4, guides = "collect") & 
@@ -362,7 +363,7 @@ p5 + p6 + p7  + p8 +
 
 
 
-## Right column of Table 1 ----
+## Right column of Table 1 ====
 mse.min = Results %>%
   select(-starts_with("alph"), -cutoff, -starts_with("q"), -starts_with("inter"), -starts_with("stab"), -starts_with("FD"), -starts_with("PW")) %>%
   pivot_longer(!c("s0", "l"), names_to = "method", values_to = "mse") %>%
@@ -464,7 +465,7 @@ X = X[1:600,]
 y = y[1:600]
 
 # subsampling and selection
-s0 = 33
+s0 = 35
 alpha = 0.3
 bags = l0_subsampling(X, y, s0, num_bags = 100)
 Selection_set = list()
@@ -479,9 +480,6 @@ while(length(Selection_set) < 100) {
   }
   cat("finished", length(Selection_set), "\n")
 }
-
-library(ggdendro)
-library(dendextend)
 
 
 # the interest_sets need to be stable and appear in at least one selection set
@@ -561,7 +559,7 @@ hc <- hclust(as.dist(subs.mat), method = "single")
 fixed.set = hc$labels[hc$order]
 
 
-## Figure 2 ----
+## Figure 2 ====
 tab1 = tab
 tab1$set1 = tab$set2
 tab1$set2 = tab$set1
@@ -607,12 +605,11 @@ p1 = all_tri %>%
 p1 
 
 
-## Figure 3 ----
+## Figure 3 ====
 all_tri_filter = tab %>%
-  filter(subs_u > 0.9, nabla_value > 0.5)
+  filter(subs_u > 0.8, nabla_value > 0.5)
 
 opar <- par() 
-# Define settings for plotting in a 3x4 grid, with appropriate margins:
 par(mar = c(1.5, 1, 1, 1))
 par(mfrow = c(2,3))
 for(i in 1:nrow(all_tri_filter)) {
@@ -657,13 +654,12 @@ for(i in 1:nrow(all_tri_filter)) {
     sapply(1:length(idx2), function(k) {
       paste0("[{", paste0(Name.pair2[idx2][[k]], collapse = ","), "}, S2]") 
     }),
-    "Deg"
+    "Triangle"
   )
   fmsb::radarchart(
     Tau,
     pfcol = c("#99999980",NA),
     pcol= c(NA,2), plty = 1, plwd = 2,
-    # title = row.names(Tau)[3],
     axislabcol = "blue", 
     caxislabels = c(0.2, 0.4, 0.6, 0.8, 1),
     vlabels = colnames(Tau),
