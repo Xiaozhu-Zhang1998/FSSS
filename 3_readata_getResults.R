@@ -23,8 +23,7 @@ mse.tab = Results %>%
   mutate(
     Method = str_remove(method, "mse_"),
     Method = factor(Method, levels = c("L0", "Lasso", "SS", "CSS_wavg", "CSS_savg", "CSS_sps", "FSSS"), labels = c("L0", "Lasso", "SS", "CSS (wavg)", "CSS (savg)", "CSS (sps)", "FSSS"))
-  ) %>%
-  filter(s0!=-2)
+  ) 
 
 q.tab = Results %>%
   select(-starts_with("alph"), -cutoff, -starts_with("mse"), -starts_with("inter"), -starts_with("stab")) %>%
@@ -34,8 +33,7 @@ q.tab = Results %>%
   mutate(
     Method = str_remove(method, "q_"),
     Method = factor(Method, levels = c("L0", "Lasso", "SS", "CSS_wavg", "CSS_savg", "CSS_sps", "FSSS"), labels = c("L0", "Lasso", "SS", "CSS (wavg)", "CSS (savg)", "CSS (sps)", "FSSS"))
-  ) %>%
-  filter(s0!=-2)
+  ) 
 
 
 stab.tab = Results %>%
@@ -46,8 +44,7 @@ stab.tab = Results %>%
   mutate(
     Method = str_remove(method, "stab_"),
     Method = factor(Method, levels = c("L0", "Lasso", "SS", "CSS_wavg", "CSS_savg", "CSS_sps", "FSSS"), labels = c("L0", "Lasso", "SS", "CSS (wavg)", "CSS (savg)", "CSS (sps)", "FSSS"))
-  ) %>%
-  filter(s0!=-2) 
+  ) 
 
 pointsize = 1
 p1 = mse.tab %>%

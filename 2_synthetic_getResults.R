@@ -8,19 +8,7 @@ library(dichromat)
 # l0 base procedure =====
 # read in the simulation results (collected from 2_synthetic_l0.R)
 Results = readRDS("RS_Syn_l0.RDS")
-
-
 Results = Results %>%
-  data.frame() %>%
-  `colnames<-`(c("s0", "l", 
-                 "alpha_SS", "alpha_CSS", "alpha_FSSS", "cutoff", 
-                 "mse_SS", "mse_CSS_wavg", "mse_CSS_savg", "mse_CSS_sps", "mse_FSSS", "mse_Lasso", "mse_L0", 
-                 "q_SS", "q_CSS", "q_FSSS", "q_Lasso", "q_L0",
-                 "FD_SS", "FD_CSS_wavg", "FD_CSS_savg", "FD_CSS_sps", "FD_FSSS", "FD_Lasso", "FD_L0", 
-                 "PW_SS", "PW_CSS_wavg", "PW_CSS_savg", "PW_CSS_sps", "PW_FSSS", "PW_Lasso", "PW_L0", 
-                 "inter_SS", "inter_CSS_wavg", "inter_CSS_savg", "inter_CSS_sps", "inter_FSSS", "inter_Lasso", "inter_L0",
-                 "stab_SS", "stab_CSS_wavg", "stab_CSS_savg", "stab_CSS_sps", "stab_FSSS", "stab_Lasso", "stab_L0"
-  )) %>%
   mutate(
     q_CSS_wavg = q_CSS,
     q_CSS_savg = q_CSS,
@@ -230,18 +218,7 @@ Results %>%
 # lasso base procedure ====
 # read in the simulation results (collected from 2_synthetic_lasso.R)
 Results = readRDS("RS_Syn_lasso.RDS")
-
 Results = Results %>%
-  data.frame() %>%
-  `colnames<-`(c("s0", "l", 
-                 "alpha_SS", "alpha_CSS", "alpha_FSSS", "cutoff", 
-                 "mse_SS", "mse_CSS_wavg", "mse_CSS_savg", "mse_CSS_sps", "mse_FSSS", "mse_Lasso", "mse_L0", 
-                 "q_SS", "q_CSS", "q_FSSS", "q_Lasso", "q_L0",
-                 "FD_SS", "FD_CSS_wavg", "FD_CSS_savg", "FD_CSS_sps", "FD_FSSS", "FD_Lasso", "FD_L0", 
-                 "PW_SS", "PW_CSS_wavg", "PW_CSS_savg", "PW_CSS_sps", "PW_FSSS", "PW_Lasso", "PW_L0", 
-                 "inter_SS", "inter_CSS_wavg", "inter_CSS_savg", "inter_CSS_sps", "inter_FSSS", "inter_Lasso", "inter_L0",
-                 "stab_SS", "stab_CSS_wavg", "stab_CSS_savg", "stab_CSS_sps", "stab_FSSS", "stab_Lasso", "stab_L0"
-  )) %>%
   mutate(
     q_CSS_wavg = q_CSS,
     q_CSS_savg = q_CSS,
